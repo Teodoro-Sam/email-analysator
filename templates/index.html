@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classificador e Sugeridor de Respostas de E-mail</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #007BFF; /* Cor do spinner */
+            animation: spin 1s ease infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-2xl">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                Analisador de E-mails com IA
+            </h1>
+            <p class="text-center text-gray-600 mb-8">
+                Cole o conteúdo de um e-mail abaixo para que nossa IA o classifique e sugira uma resposta.
+            </p>
+
+            <div class="mb-6">
+                <label for="email_content" class="block text-gray-700 font-semibold mb-2">
+                    Conteúdo do E-mail
+                </label>
+                <textarea id="email_content" rows="8" class="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+            </div>
+            
+            <div class="flex items-center justify-center mb-6">
+                <button id="submit_button" class="bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    Analisar E-mail
+                </button>
+            </div>
+
+            <div id="results_section" class="hidden">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Resultados da Análise</h2>
+                    <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                        <p class="text-gray-700">
+                            <strong>Classificação:</strong>
+                            <span id="category_result" class="font-semibold text-blue-600 ml-2"></span>
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Resposta Sugerida</h2>
+                    <div class="relative">
+                        <textarea id="suggested_response" rows="6" class="w-full p-4 border rounded-lg bg-gray-50 text-gray-700 font-mono" readonly></textarea>
+                        <button id="copy_button" class="absolute top-2 right-2 bg-gray-200 text-gray-600 px-3 py-1 rounded-md text-sm hover:bg-gray-300 transition duration-200">
+                            Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading_spinner" class="hidden flex justify-center items-center mt-6">
+                <div class="spinner"></div>
+                <span class="ml-4 text-gray-600">Analisando... Por favor, aguarde.</span>
+            </div>
+
+            <div id="error_message" class="hidden text-red-600 text-center mt-4">
+                Ocorreu um erro ao processar o e-mail. Por favor, tente novamente.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('submit_button').addEventListener('click', async () => {
+            const emailContent = document.getElementById('email_content').value;
+            const submitButton = document.getElementById('submit_button');
+            const loadingSpinner = document.getElementById('loading_spinner');
+            const resultsSection = document.getElementById('results_section');
+            const errorMessage = document.getElementById('error_message');
+
+            // 1. Oculta resultados e mensagens de erro anteriores e mostra o spinner
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            submitButton.disabled = true; // Desabilita o botão para evitar cliques múltiplos
+            submitButton.innerHTML = 'Analisando...';
+            loadingSpinner.classList.remove('hidden');
+
+            try {
+                // 2. Envia os dados para o backend
+                const response = await fetch('/processar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email_text: emailContent }),
+                });
+
+                // 3. Verifica se a resposta foi bem-sucedida
+                if (!response.ok) {
+                    throw new Error('Falha na resposta do servidor.');
+                }
+                
+                // 4. Converte a resposta para JSON
+                const data = await response.json();
+                
+                // 5. Atualiza a interface com os resultados
+                document.getElementById('category_result').textContent = data.categoria;
+                document.getElementById('suggested_response').value = data.resposta_sugerida;
+                
+                // 6. Mostra a seção de resultados e oculta o spinner
+                resultsSection.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Erro:', error);
+                errorMessage.classList.remove('hidden'); // Exibe a mensagem de erro
+            } finally {
+                // 7. Restaura o botão e oculta o spinner
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Analisar E-mail';
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+
+        // Adiciona funcionalidade de copiar a resposta
+        document.getElementById('copy_button').addEventListener('click', () => {
+            const suggestedResponse = document.getElementById('suggested_response');
+            suggestedResponse.select();
+            document.execCommand('copy');
+            alert('Resposta copiada para a área de transferência!');
+        });
+    </script>
+</body>
+</html>
