@@ -52,12 +52,10 @@ def classificar_e_responder_email(texto_email):
         
         response_json_string = response.text
         
-        # AQUI ESTÁ A MUDANÇA: Retorne o objeto Python diretamente.
         return json.loads(response_json_string)
         
     except Exception as e:
         print(f"Erro ao chamar a API da Google Gemini: {e}")
-        # AQUI TAMBÉM: Retorne o objeto Python diretamente.
         return {
             "categoria": "Erro",
             "resposta_sugerida": "Não foi possível processar o email. Por favor, tente novamente."
@@ -79,7 +77,8 @@ def processar_email():
 
     response_from_ai = classificar_e_responder_email(texto_email)
     
-    return response_from_ai
+    # AQUI ESTÁ A CORREÇÃO: Usamos jsonify para garantir a resposta no formato correto.
+    return jsonify(response_from_ai)
 
 if __name__ == '__main__':
     app.run(debug=True)
