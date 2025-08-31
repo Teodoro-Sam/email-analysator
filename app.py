@@ -1,5 +1,5 @@
 import os
-import json  # Importe a biblioteca 'json' para lidar com o JSON
+import json
 from flask import Flask, render_template, request, jsonify
 from dotenv import load_dotenv
 import google.generativeai as genai
