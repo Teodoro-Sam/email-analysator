@@ -20,7 +20,6 @@ def classificar_e_responder_email(texto_email):
     """
     Função que usa a API da Google Gemini para classificar e gerar uma resposta para um email.
     """
-    # Usamos o modelo Gemini 1.5 Pro por sua capacidade de processar JSON
     model = genai.GenerativeModel('gemini-1.5-pro-latest')
 
     # O prompt é o mesmo, a única diferença é que pedimos para o modelo retornar APENAS o JSON
@@ -47,25 +46,25 @@ def classificar_e_responder_email(texto_email):
     """
     
     try:
-        # A chamada à API da Google é diferente da da OpenAI
         response = model.generate_content(
             prompt,
             # A instrução de retorno em JSON é enviada aqui, em vez de no prompt
             generation_config={"response_mime_type": "application/json"}
         )
         
-        # O resultado é um objeto, então acessamos o texto do conteúdo
         response_json_string = response.text
         
-        # Convertemos a string JSON em um objeto Python e retornamos
-        return jsonify(json.loads(response_json_string))
+        # AQUI ESTÁ A MUDANÇA: Retorne o objeto Python diretamente.
+        return json.loads(response_json_string)
         
     except Exception as e:
         print(f"Erro ao chamar a API da Google Gemini: {e}")
-        return jsonify({
+        # AQUI TAMBÉM: Retorne o objeto Python diretamente.
+        return {
             "categoria": "Erro",
             "resposta_sugerida": "Não foi possível processar o email. Por favor, tente novamente."
-        })
+        }
+
 
 # As rotas Flask permanecem as mesmas
 @app.route('/')
