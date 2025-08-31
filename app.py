@@ -21,8 +21,7 @@ def classificar_e_responder_email(texto_email):
     Função que usa a API da Google Gemini para classificar e gerar uma resposta para um email.
     """
     model = genai.GenerativeModel('gemini-1.5-pro-latest')
-
-    # O prompt é o mesmo, a única diferença é que pedimos para o modelo retornar APENAS o JSON
+    
     prompt = f"""
     Você é um assistente de IA especializado em analisar e responder emails. Sua tarefa é ler o email abaixo, classificá-lo em uma das duas categorias (Produtivo ou Improdutivo) e, em seguida, sugerir uma resposta automática adequada.
 
@@ -48,7 +47,6 @@ def classificar_e_responder_email(texto_email):
     try:
         response = model.generate_content(
             prompt,
-            # A instrução de retorno em JSON é enviada aqui, em vez de no prompt
             generation_config={"response_mime_type": "application/json"}
         )
         
